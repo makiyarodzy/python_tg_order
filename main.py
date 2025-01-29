@@ -1,49 +1,55 @@
+import asyncio
 import os
-from aiogram import Bot,Dispatcher
+from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 import grpc
-from mahakala_proto.gen.python.order.order_pb2_grpc import add_OrderServicer_to_server,OrderServicer
-from mahakala_proto.gen.python.order.order_pb2 import OrderResponse
-
+from grpc.aio import ServicerContext
+from mahakala_proto.gen.python.order.order_pb2_grpc import add_OrderServicer_to_server, OrderServicer
+from mahakala_proto.gen.python.order.order_pb2 import OrderResponse, OrderRequest
+from app.botkit.user_router import user_router
 
 load_dotenv()
 
-bot = Bot(token = os.getenv("TOKEN"))
+
 dp = Dispatcher()
-
+dp.include_routers(user_router)
 class OrderServiceImp(OrderServicer):
-    async def TelegramOrder(self, request, context):
-        print(f"hello world: {request}")
-        
-        return OrderResponse(success=True, message=f"Order {request.order_id} processed successfully")
-       
-       
+    def __init__(self, bot: Bot):
+        self.bot = bot  
 
-async def grpc_server():
+    async def TelegramOrder(self, request: OrderRequest, context: ServicerContext):
+        print(f"Received order_id: {request}")
+        message_text = f"Новый заказ: {request}"
+        await self.bot.send_message(chat_id=1195173283, text=message_text)
+        return OrderResponse(ok ="true")
+
+# Асинхронная функция для старта gRPC сервера
+async def grpc_server(bot: Bot):
     server = grpc.aio.server()
-    add_OrderServicer_to_server(OrderServiceImp(), server)
-    address = "localhost:50051"
-    print(f"gRPC server started on {address}")
+    order_service = OrderServiceImp(bot)  # Передаем бот в сервис
+    add_OrderServicer_to_server(order_service, server)
+    address = f"{os.getenv("HOST")}:{os.getenv("PORT")}"
     server.add_insecure_port(address)
+    print(f"gRPC server started on {address}")
     await server.start()
     await server.wait_for_termination()
 
-
+# Асинхронная функция для старта всех сервисов
 async def start_services():
-    grpc_task = asyncio.create_task(grpc_server())
-    bot_task = asyncio.create_task(main())
+   
+    bot = Bot(token=os.getenv("TOKEN"))
+    await bot.delete_webhook(drop_pending_updates=True)
     
+  
+    grpc_task = asyncio.create_task(grpc_server(bot))  
+    bot_task = asyncio.create_task(dp.start_polling(bot))  
+
     await grpc_task
     await bot_task
 
-async def main():
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
-
-if __name__ =="__main__":
-    import asyncio
+# Запуск всех сервисов
+if __name__ == "__main__":
     try:
         asyncio.run(start_services())
     except KeyboardInterrupt:
-        print("бот выключен")
-    
+        print("Бот выключен")
