@@ -3,7 +3,7 @@ from aiogram import Bot,Dispatcher
 from dotenv import load_dotenv
 import grpc
 from mahakala_proto.gen.python.order.order_pb2_grpc import add_OrderServicer_to_server,OrderServicer
-
+from mahakala_proto.gen.python.order.order_pb2 import OrderResponse
 
 
 load_dotenv()
@@ -12,8 +12,12 @@ bot = Bot(token = os.getenv("TOKEN"))
 dp = Dispatcher()
 
 class OrderServiceImp(OrderServicer):
-    async def GetOrder(self, request, context):
-        pass
+    async def TelegramOrder(self, request, context):
+        print(f"hello world: {request}")
+        
+        return OrderResponse(success=True, message=f"Order {request.order_id} processed successfully")
+       
+       
 
 async def grpc_server():
     server = grpc.aio.server()
@@ -26,11 +30,8 @@ async def grpc_server():
 
 
 async def start_services():
-    # Запускаем gRPC сервер
     grpc_task = asyncio.create_task(grpc_server())
-    # Запускаем бота
     bot_task = asyncio.create_task(main())
-    
     
     await grpc_task
     await bot_task
