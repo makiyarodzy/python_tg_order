@@ -7,8 +7,8 @@ from grpc.aio import ServicerContext
 from mahakala_proto.gen.python.order.order_pb2_grpc import add_OrderServicer_to_server, OrderServicer
 from mahakala_proto.gen.python.order.order_pb2 import OrderResponse, OrderRequest
 from aiogram.types import FSInputFile
-from app.botkit.user_router import user_router
-from app.excel.createExcel import createExcelOrder
+from botkit.user_router import user_router
+from excel.createExcel import createExcelOrder
 load_dotenv()
 
 
@@ -41,10 +41,10 @@ async def grpc_server(bot: Bot):
     server.add_insecure_port(address)
     print(f"gRPC server started on {address}")
     await server.start()
-    await server.wait_for_termination()
-
-
-
+    try:
+        await server.wait_for_termination()
+    finally:
+        await server.stop(grace=3)
 
 
 async def start_services():
@@ -60,8 +60,9 @@ async def start_services():
 
 # Запуск всех сервисов
 if __name__ == "__main__":
-    try:
-        
+    try: 
         asyncio.run(start_services())
+    except asyncio.CancelledError:
+        print("Сервисы остановлены")
     except KeyboardInterrupt:
         print("Бот выключен")

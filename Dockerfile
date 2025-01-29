@@ -2,6 +2,10 @@ FROM python:3.13.1-alpine as builder
 
 COPY . . 
 
-RUN pip install -r requirements.txt
+RUN apk add --no-cache gcc musl-dev libffi-dev
 
-CMD ["task" "run"]
+RUN pip install poetry
+
+RUN poetry install
+
+CMD ["task", "run"]
