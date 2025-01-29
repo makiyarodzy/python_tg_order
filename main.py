@@ -6,8 +6,9 @@ import grpc
 from grpc.aio import ServicerContext
 from mahakala_proto.gen.python.order.order_pb2_grpc import add_OrderServicer_to_server, OrderServicer
 from mahakala_proto.gen.python.order.order_pb2 import OrderResponse, OrderRequest
+from aiogram.types import FSInputFile
 from app.botkit.user_router import user_router
-
+from app.excel.createExcel import createExcelOrder
 load_dotenv()
 
 
@@ -15,12 +16,20 @@ dp = Dispatcher()
 dp.include_routers(user_router)
 class OrderServiceImp(OrderServicer):
     def __init__(self, bot: Bot):
-        self.bot = bot  
-
+        self.bot = bot
+      
+    def create_tabel_users(self,order:OrderRequest):
+        self.order = createExcelOrder(orderlist=order,filename='users.xlsx')
+    
     async def TelegramOrder(self, request: OrderRequest, context: ServicerContext):
         print(f"Received order_id: {request}")
         message_text = f"Новый заказ: {request}"
-        await self.bot.send_message(chat_id=1195173283, text=message_text)
+        chat_id=os.getenv("CHAT_ID")
+        file = FSInputFile("excel_files/users.xlsx")
+        self.create_tabel_users(request)
+
+
+        await self.bot.send_document(chat_id=chat_id, document=file,caption="Вот ваш заказ 📄")
         return OrderResponse(ok ="true")
 
 # Асинхронная функция для старта gRPC сервера
@@ -34,13 +43,15 @@ async def grpc_server(bot: Bot):
     await server.start()
     await server.wait_for_termination()
 
-# Асинхронная функция для старта всех сервисов
+
+
+
+
 async def start_services():
-   
     bot = Bot(token=os.getenv("TOKEN"))
     await bot.delete_webhook(drop_pending_updates=True)
     
-  
+    
     grpc_task = asyncio.create_task(grpc_server(bot))  
     bot_task = asyncio.create_task(dp.start_polling(bot))  
 
@@ -50,6 +61,7 @@ async def start_services():
 # Запуск всех сервисов
 if __name__ == "__main__":
     try:
+        
         asyncio.run(start_services())
     except KeyboardInterrupt:
         print("Бот выключен")
