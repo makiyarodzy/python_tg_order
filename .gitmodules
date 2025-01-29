@@ -1,0 +1,3 @@
+[submodule "mahakala_proto"]
+	path = mahakala_proto
+	url = https://github.com/makiyarodzy/mahakala_proto

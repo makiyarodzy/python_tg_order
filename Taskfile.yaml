@@ -1,0 +1,9 @@
+version: 3
+
+tasks:
+  generate:
+    aliases:
+      - run
+    desc: "Generate code from proto files"
+    cmds:
+      - python main.py
