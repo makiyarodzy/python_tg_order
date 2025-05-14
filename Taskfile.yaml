@@ -6,4 +6,4 @@ tasks:
       - run
     desc: "Generate code from proto files"
     cmds:
-      - python app/main.py
+      - uv run app/main.py

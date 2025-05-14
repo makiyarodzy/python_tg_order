@@ -2,12 +2,9 @@
 name = "app"
 version = "0.1.0"
 description = "grpc python"
-authors = [
-    {name = "Sanchir",email = "115372855+Sanchir01@users.noreply.github.com"}
-]
-readme = "README.md"
+authors = [{ name = "Sanchir", email = "115372855+Sanchir01@users.noreply.github.com" }]
 requires-python = ">=3.13"
-
+readme = "README.md"
 dependencies = [
     "aiogram (>=3.17.0,<4.0.0)",
     "grpcio (>=1.70.0,<2.0.0)",
@@ -19,10 +16,9 @@ dependencies = [
 ]
 
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.14.1"
+[dependency-groups]
+dev = [
+    "mypy>=1.14.1,<2",
+    "ruff>=0.11.9",
+]
 

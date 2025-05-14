@@ -24,6 +24,7 @@ class OrderServiceImp(OrderServicer):
     async def TelegramOrder(self, request: OrderRequest, context: ServicerContext):
         print(f"Received order_id: {request}")
         message_text = f"Новый заказ: {request}"
+        print(f"готовый заказ: {message_text}")
         chat_id=os.getenv("CHAT_ID")
         file = FSInputFile("excel_files/users.xlsx")
         self.create_tabel_users(request)

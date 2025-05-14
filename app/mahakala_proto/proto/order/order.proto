@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "mahakala.order.v1;orderv1";
+
+import "google/protobuf/timestamp.proto";
+
+service Order{
+  rpc TelegramOrder(OrderRequest) returns (OrderResponse);
+}
+
+message OrderMessage {
+  string id = 1; 
+  string title = 2;
+  string slug = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  uint32 version = 6;
+  int32 price = 7;
+  repeated string images = 8;
+  string color_id = 9;
+  string category_id = 10; 
+  string description = 11;
+  int32 weight = 12;
+}
+message OrderRequest{
+    repeated OrderMessage orders = 1;
+}
+message OrderResponse{
+    string ok = 1;
+}

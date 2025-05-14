@@ -6,8 +6,9 @@ RUN apk add --no-cache curl
 
 RUN curl -sSL https://taskfile.dev/install.sh | sh
 
-RUN pip install poetry
 
-RUN poetry install
+RUN curl -LsSf https://astral.sh/uv/install.sh | less
+
+RUN uv sync
 
 CMD ["task", "run"]
